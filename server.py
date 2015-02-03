@@ -1,8 +1,13 @@
-from flask import Flask, url_for, render_template, jsonify
+from flask import Flask, url_for, render_template, jsonify, request
 from flask.ext.pymongo import PyMongo
 from pymongo import MongoClient
 from bson.json_util import dumps
 import ast
+from bson.objectid import ObjectId
+
+from datetime import datetime
+from datetime import timedelta
+import datetime
 
 app = Flask(__name__)
 uri = 'mongodb://localhost/routineapp'
@@ -26,11 +31,29 @@ def mongoObj(jsn):
 def index():
     return render_template('index.html')
 
+
 @app.route('/tasks', methods=['GET'])
 def get_tasks():
     r = mongoObj(list(db.task.find()))
     
     return jsonify({'tasks': r})
+
+
+@app.route('/tasks', methods=['POST'])
+def update_tasks():
+    data = request.json
+    rid = data['id']
+
+    db.task.update(
+        {'_id': ObjectId(rid)},
+        {
+            '$addToSet': {
+                'updated': str(datetime.datetime.now())
+            }
+        }
+    )
+
+    return jsonify({'status': 'Success'})
 
 if __name__ == '__main__':
     app.run(debug=True)

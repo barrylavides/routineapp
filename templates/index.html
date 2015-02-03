@@ -1,7 +1,64 @@
 <script src="{{url_for('static', filename='js/jquery.js')}}"></script>
 <script>
     $(function() {
+        $(document).on('click', '.btn', function(e) {
+            e.preventDefault();
 
-        console.log('yo');
+            var thisEl = $(this),
+                rid = thisEl.attr('id');
+
+            $.ajax({
+                url: '/tasks',
+                method: 'POST',
+                data: JSON.stringify({'id': rid}),
+                contentType: 'application/json; charset=utf-8',
+                success: function(res) {
+                    console.log(res.status)
+                    if (res.status === 'Success') {
+                        thisEl.replaceWith('Finished');
+                    }
+                }
+            });
+        });
+
+        $.ajax({
+            url: '/tasks',
+            method: 'GET',
+            success: function(res) {
+                var tasks = res['tasks'],
+                    str = '',
+                    rawDate = Date().split(' '),
+                    currentDate = rawDate[0] +' '+ rawDate[1] +' '+ rawDate[2],
+                    btn = '';
+
+                for (var i=0; i<tasks.length; i++) {
+                    var name = tasks[i].name,
+                        tid = tasks[i]._id;
+
+                        if (tasks[i].updated !== undefined) {
+                            var recordRawDate = Date(tasks[i].updated[tasks[i].updated.length-1]).split(' '),
+                                recordDate = recordRawDate[0] +' '+ recordRawDate[1] +' '+ recordRawDate[2];
+     
+
+                            if (currentDate === recordDate) {
+                                btn = 'Finished'
+                            }
+                        } else {
+                            btn = '<button class="btn" id="'+ tid +'">Done</button>'
+                        }
+                    str += '<tr><td>'+ name +'</td><td>'+ btn +'</td></tr>';
+                }
+
+                $('table').append(str);
+            }
+        });
     });
 </script>
+<h1>Home</h1>
+<h1>History</h1>
+<table border="1">
+    <tr>
+        <th>Task</th>
+        <th>Action</th>
+    </tr>
+</table>
