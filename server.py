@@ -55,5 +55,26 @@ def update_tasks():
 
     return jsonify({'status': 'Success'})
 
+@app.route('/tracker', methods=['GET'])
+def tracker():
+    r = list(db.task.find())
+    arr = []
+
+    for i in range(len(r)):
+        if len(r[i]['updated']) == 1:
+            arr.append(r[i]['updated'][0])
+    
+        if len(r[i]['updated']) > 1:
+            for x in range(len(r[i]['updated'])):
+                arr.append(r[i]['updated'][x])
+
+    oldest = min(arr)
+
+    return jsonify({
+        'oldest': oldest,
+        'dates': arr
+    })
+
+
 if __name__ == '__main__':
     app.run(debug=True)

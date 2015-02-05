@@ -11,6 +11,23 @@
     <script src="{{url_for('static', filename='js/jquery.js')}}"></script>
     <script>
     $(function() {
+        $(document).on('click', '.nav', function(e) {
+            e.preventDefault();
+
+            var thisEl = $(this);
+
+            if (thisEl.attr('id') === 'nav-home') {
+                console.log('Home');
+            } else if (thisEl.attr('id') === 'nav-tracker') {
+                $.ajax({
+                    url: '/tracker',
+                    method: 'GET',
+                    success: function(res) {
+                        console.log(res);
+                    }
+                });
+            }
+         })
         $(document).on('click', '.btn', function(e) {
             e.preventDefault();
 
@@ -66,8 +83,8 @@
 
 <div class="large-9 medium-8 columns container">
   <ul class="breadcrumbs">
-    <li><a href="#">Home</a></li>
-    <li><a href="#">Tracker</a></li>
+    <li><a href="#" class="nav" id="nav-home">Home</a></li>
+    <li><a href="#" class="nav" id="nav-tracker">Tracker</a></li>
   </ul>
   <table border="1" role="grid">
     <thead>
