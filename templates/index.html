@@ -10,6 +10,31 @@
 
     <script src="{{url_for('static', filename='js/jquery.js')}}"></script>
     <script>
+    var helpers = {
+        months: {
+            0: 'Jan',
+            1: 'Feb',
+            2: 'Mar',
+            3: 'Apr',
+            4: 'May',
+            5: 'Jun',
+            6: 'Jul',
+            7: 'Aug',
+            8: 'Sep',
+            9: 'Oct',
+            10: 'Nov',
+            11: 'Dec'
+        },
+        days: {
+            1: 'Monday',
+            2: 'Tuesday',
+            3: 'Wednesday',
+            4: 'Thursday',
+            5: 'Friday',
+            6: 'Saturday',
+            7: 'Sunday'
+        }
+    };
     $(function() {
         $(document).on('click', '.nav', function(e) {
             e.preventDefault();
@@ -23,11 +48,12 @@
                     url: '/tracker',
                     method: 'GET',
                     success: function(res) {
-                        console.log(res);
+                        console.log(helpers.months[new Date(res.oldest).getMonth()])
                     }
                 });
             }
          })
+
         $(document).on('click', '.btn', function(e) {
             e.preventDefault();
 
@@ -75,24 +101,31 @@
                 $('table').append(str);
             }
         });
+        
+        var day = helpers.days[new Date().getDay()],
+            month = helpers.months[new Date().getMonth()],
+            _date = new Date().getDate();
+
+        $('.current-date h1').append(day +', '+ month +' '+_date);
     });
   </script>
 </head>
 <body>
 
 <div class="large-9 medium-8 columns container">
-  <ul class="breadcrumbs">
-    <li><a href="#" class="nav" id="nav-home">Home</a></li>
-    <li><a href="#" class="nav" id="nav-tracker">Tracker</a></li>
-  </ul>
-  <table border="1" role="grid">
-    <thead>
-      <tr>
-        <th>Task</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-  </table>
+    <ul class="breadcrumbs">
+        <li><a href="#" class="nav" id="nav-home">Home</a></li>
+        <li><a href="#" class="nav" id="nav-tracker">Tracker</a></li>
+    </ul>
+    <div class="callout panel text-center current-date"><h1></h1></div>
+    <table border="1" role="grid">
+        <thead>
+            <tr>
+                <th>Task</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+    </table>
 </div>
 </body>
 </html>
