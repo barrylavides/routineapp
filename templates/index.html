@@ -1,3 +1,14 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RoutineApp</title>
+<link rel="stylesheet" href="{{url_for('static', filename='css/foundation/css/normalize.css')}}">
+<link rel="stylesheet" href="{{url_for('static', filename='css/foundation/css/foundation.css')}}">
+    <link rel="stylesheet" href="{{url_for('static', filename='css/app.css')}}">
+  </head>
+  <body>
 <script src="{{url_for('static', filename='js/jquery.js')}}"></script>
 <script>
     $(function() {
@@ -41,10 +52,10 @@
      
 
                             if (currentDate === recordDate) {
-                                btn = 'Finished'
+                              btn = '<button class="success disabled tiny">Finished</button>'
                             }
                         } else {
-                            btn = '<button class="btn" id="'+ tid +'">Done</button>'
+                            btn = '<button class="btn tiny alert" id="'+ tid +'">Done</button>'
                         }
                     str += '<tr><td>'+ name +'</td><td>'+ btn +'</td></tr>';
                 }
@@ -53,12 +64,20 @@
             }
         });
     });
-</script>
-<h1>Home</h1>
-<h1>History</h1>
-<table border="1">
-    <tr>
+  </script>
+<div class="large-9 medium-8 columns container">
+  <ul class="breadcrumbs">
+    <li><a href="#">Home</a></li>
+    <li><a href="#">History</a></li>
+  </ul>
+  <table border="1" role="grid">
+    <thead>
+      <tr>
         <th>Task</th>
         <th>Action</th>
-    </tr>
-</table>
+      </tr>
+    </thead>
+  </table>
+</div>
+</body>
+</html>
