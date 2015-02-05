@@ -14,7 +14,7 @@ uri = 'mongodb://localhost/routineapp'
 c = MongoClient(uri)
 db = c.get_default_database()
 
-def mongoObj(jsn):
+def mongoObj(jsn,_id=True):
     jsn = ast.literal_eval(dumps(jsn))
     
     # mongo object returns BJSON as its id
@@ -22,7 +22,10 @@ def mongoObj(jsn):
     # and at the same time will remove the oid,
     # and assign the oid's value to its parent id
     for i,v in enumerate(jsn):
-        jsn[i]['_id'] = jsn[i]['_id']['$oid']
+        if _id == True:
+            jsn[i]['_id'] = jsn[i]['_id']['$oid']
+        else:
+            del jsn[i]['_id']
     
     return jsn
 
@@ -57,7 +60,7 @@ def update_tasks():
 
 @app.route('/tracker', methods=['GET'])
 def tracker():
-    r = list(db.task.find())
+    r = mongoObj(db.task.find(), False)
     arr = []
 
     for i in range(len(r)):
@@ -72,7 +75,7 @@ def tracker():
 
     return jsonify({
         'oldest': oldest,
-        'dates': arr
+        'dates': r
     })
 
 
