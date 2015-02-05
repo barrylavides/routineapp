@@ -62,9 +62,8 @@
                         btn = '<button class="btn tiny alert" id="'+ tid +'">Done</button>';
 
                         if (tasks[i].updated.length > 0) {
-                            var recordRawDate = Date(tasks[i].updated[tasks[i].updated.length-1]).split(' '),
+                            var recordRawDate = new Date(tasks[i].updated[tasks[i].updated.length-1]).toString().split(' '),
                                 recordDate = recordRawDate[0] +' '+ recordRawDate[1] +' '+ recordRawDate[2];
-     
 
                             if (currentDate === recordDate) {
                               btn = '<button class="success disabled tiny">Finished</button>'
