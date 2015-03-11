@@ -58,6 +58,7 @@ def update_tasks():
 
     return jsonify({'status': 'Success'})
 
+
 @app.route('/tracker', methods=['GET'])
 def tracker():
     r = mongoObj(db.task.find(), False)
@@ -76,6 +77,16 @@ def tracker():
     return jsonify({
         'oldest': oldest,
         'dates': r
+    })
+
+
+@app.route('/tasks/monitor', methods=['GET'])
+def check_tasks():
+    tasks = mongoObj(list(db.task.find()))
+    
+    return jsonify({
+        'tasks': tasks,
+        'datetime': str(datetime.datetime.now())
     })
 
 
