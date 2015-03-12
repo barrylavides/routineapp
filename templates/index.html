@@ -7,153 +7,165 @@
     <link rel="stylesheet" href="{{url_for('static', filename='css/foundation/css/normalize.css')}}">
     <link rel="stylesheet" href="{{url_for('static', filename='css/foundation/css/foundation.css')}}">
     <link rel="stylesheet" href="{{url_for('static', filename='css/app.css')}}">
+    <style type="text/css">
+        table#tbl-tasks .btn, table#tbl-tasks .success {
+            width: 50%;
+        }
 
+        td.status {
+            text-align: center;
+        }
+
+        td.task-name {
+            font-size: 15px;
+        }
+    </style>
     <script src="{{url_for('static', filename='js/jquery.js')}}"></script>
     <script>
-    var helpers = {
-        months: {
-            0: 'Jan',
-            1: 'Feb',
-            2: 'Mar',
-            3: 'Apr',
-            4: 'May',
-            5: 'Jun',
-            6: 'Jul',
-            7: 'Aug',
-            8: 'Sep',
-            9: 'Oct',
-            10: 'Nov',
-            11: 'Dec'
-        },
-        days: {
-            1: 'Monday',
-            2: 'Tuesday',
-            3: 'Wednesday',
-            4: 'Thursday',
-            5: 'Friday',
-            6: 'Saturday',
-            7: 'Sunday'
-        }
-    };
-    $(function() {
-        $(document).on('click', '.nav', function(e) {
-            e.preventDefault();
+        var helpers = {
+            months: {
+                0: 'Jan',
+                1: 'Feb',
+                2: 'Mar',
+                3: 'Apr',
+                4: 'May',
+                5: 'Jun',
+                6: 'Jul',
+                7: 'Aug',
+                8: 'Sep',
+                9: 'Oct',
+                10: 'Nov',
+                11: 'Dec'
+            },
+            days: {
+                1: 'Monday',
+                2: 'Tuesday',
+                3: 'Wednesday',
+                4: 'Thursday',
+                5: 'Friday',
+                6: 'Saturday',
+                7: 'Sunday'
+            }
+        };
+        $(function() {
+            $(document).on('click', '.nav', function(e) {
+                e.preventDefault();
 
-            var thisEl = $(this);
+                var thisEl = $(this);
 
-            if (thisEl.attr('id') === 'nav-home') {
-                console.log('Home');
-            } else if (thisEl.attr('id') === 'nav-tracker') {
+                if (thisEl.attr('id') === 'nav-home') {
+                    console.log('Home');
+                } else if (thisEl.attr('id') === 'nav-tracker') {
+                    $.ajax({
+                        url: '/tracker',
+                        method: 'GET',
+                        success: function(res) {
+                            console.log(helpers.months[new Date(res.oldest).getMonth()])
+                        }
+                    });
+                }
+             })
+
+            $(document).on('click', '.btn', function(e) {
+                e.preventDefault();
+
+                var thisEl = $(this),
+                    rid = thisEl.attr('id');
+
                 $.ajax({
-                    url: '/tracker',
-                    method: 'GET',
+                    url: '/tasks',
+                    method: 'POST',
+                    data: JSON.stringify({'id': rid}),
+                    contentType: 'application/json; charset=utf-8',
                     success: function(res) {
-                        console.log(helpers.months[new Date(res.oldest).getMonth()])
+                        if (res.status === 'Success') {
+                            thisEl.replaceWith('<button class="success disabled tiny">Finished</button>');
+                        }
                     }
                 });
-            }
-         })
-
-        $(document).on('click', '.btn', function(e) {
-            e.preventDefault();
-
-            var thisEl = $(this),
-                rid = thisEl.attr('id');
+            });
 
             $.ajax({
                 url: '/tasks',
-                method: 'POST',
-                data: JSON.stringify({'id': rid}),
-                contentType: 'application/json; charset=utf-8',
+                method: 'GET',
                 success: function(res) {
-                    if (res.status === 'Success') {
-                        thisEl.replaceWith('<button class="success disabled tiny">Finished</button>');
+                    var tasks = res['tasks'],
+                        str = '',
+                        rawDate = Date().split(' '),
+                        currentDate = rawDate[0] +' '+ rawDate[1] +' '+ rawDate[2];
+
+                    for (var i=0; i<tasks.length; i++) {
+                        var name = tasks[i].name,
+                            tid = tasks[i]._id,
+                            btn = '<button class="btn tiny alert" id="'+ tid +'">Done</button>';
+
+                            if (tasks[i].updated.length > 0) {
+                                var recordRawDate = new Date(tasks[i].updated[tasks[i].updated.length-1]).toString().split(' '),
+                                    recordDate = recordRawDate[0] +' '+ recordRawDate[1] +' '+ recordRawDate[2];
+
+                                if (currentDate === recordDate) {
+                                  btn = '<button class="success disabled tiny" id="'+ tid +'">Finished</button>'
+                                }
+                            }
+                        str += '<tr><td class="task-name">'+ name +'</td><td class="status">'+ btn +'</td></tr>';
                     }
+
+                    $('table').append(str);
                 }
             });
-        });
 
-        $.ajax({
-            url: '/tasks',
-            method: 'GET',
-            success: function(res) {
-                var tasks = res['tasks'],
-                    str = '',
-                    rawDate = Date().split(' '),
-                    currentDate = rawDate[0] +' '+ rawDate[1] +' '+ rawDate[2];
+            var day = helpers.days[new Date().getDay()],
+                month = helpers.months[new Date().getMonth()],
+                _date = new Date().getDate(),
+                oldDate = day +', '+ month +' '+_date,
+                resetArr = [];
 
-                for (var i=0; i<tasks.length; i++) {
-                    var name = tasks[i].name,
-                        tid = tasks[i]._id,
-                        btn = '<button class="btn tiny alert" id="'+ tid +'">Done</button>';
+            $('.current-date h1').append(day +', '+ month +' '+_date);
 
-                        if (tasks[i].updated.length > 0) {
-                            var recordRawDate = new Date(tasks[i].updated[tasks[i].updated.length-1]).toString().split(' '),
-                                recordDate = recordRawDate[0] +' '+ recordRawDate[1] +' '+ recordRawDate[2];
+            // Update task and date when current date is changed
+            setInterval(function() {
+                if (oldDate !== (day +', '+ month +' '+_date)) {
+                // if (oldDate !== 'Wednesday, Mar 12') {
+                    // Tasks
+                    $.ajax({
+                        url: '/tasks/monitor',
+                        method: 'GET',
+                        success: function(res) {
+                            var newDate = new Date(res.datetime).setHours(0,0,0,0);
+                            // var newDate = new Date('2015-03-12 10:28:00.701999').setHours(0,0,0,0);
 
-                            if (currentDate === recordDate) {
-                              btn = '<button class="success disabled tiny" id="'+ tid +'">Finished</button>'
-                            }
-                        }
-                    str += '<tr><td>'+ name +'</td><td>'+ btn +'</td></tr>';
-                }
+                            for (var i=0; i<res.tasks.length; i++) {
+                                if (res.tasks[i].updated.length > 0) {
+                                    var dateId = res.tasks[i]._id;
 
-                $('table').append(str);
-            }
-        });
+                                    for (var j=0; j<res.tasks[i].updated.length; j++) {
+                                        var oldDate = new Date(res.tasks[i].updated[j])
+                                            .setHours(0,0,0,0);
 
-        var day = helpers.days[new Date().getDay()],
-            month = helpers.months[new Date().getMonth()],
-            _date = new Date().getDate(),
-            oldDate = day +', '+ month +' '+_date,
-            resetArr = [];
-
-        $('.current-date h1').append(day +', '+ month +' '+_date);
-
-        // Update task and date when current date is changed
-        setInterval(function() {
-            if (oldDate !== (day +', '+ month +' '+_date)) {
-            // if (oldDate !== 'Wednesday, Mar 12') {
-                // Tasks
-                $.ajax({
-                    url: '/tasks/monitor',
-                    method: 'GET',
-                    success: function(res) {
-                        var newDate = new Date(res.datetime).setHours(0,0,0,0);
-                        // var newDate = new Date('2015-03-12 10:28:00.701999').setHours(0,0,0,0);
-
-                        for (var i=0; i<res.tasks.length; i++) {
-                            if (res.tasks[i].updated.length > 0) {
-                                var dateId = res.tasks[i]._id;
-
-                                for (var j=0; j<res.tasks[i].updated.length; j++) {
-                                    var oldDate = new Date(res.tasks[i].updated[j])
-                                        .setHours(0,0,0,0);
-
-                                    if (newDate !== oldDate) {
-                                        if ($.inArray(dateId, resetArr) === -1) {
-                                            resetArr.push(dateId);
+                                        if (newDate !== oldDate) {
+                                            if ($.inArray(dateId, resetArr) === -1) {
+                                                resetArr.push(dateId);
+                                            }
                                         }
                                     }
                                 }
                             }
-                        }
 
-                        for (var k=0; k<resetArr.length; k++) {
-                            console.log(resetArr[k]);
-                            $('button#'+ resetArr[k])
-                            .attr('class', 'btn tiny alert').text('Done');
+                            for (var k=0; k<resetArr.length; k++) {
+                                console.log(resetArr[k]);
+                                $('button#'+ resetArr[k])
+                                .attr('class', 'btn tiny alert').text('Done');
+                            }
                         }
-                    }
-                });
-                // Date
-                $('.current-date h1').html(day +', '+ month +' '+_date);
-                console.log('new date');
-            } else {
-                console.log('same date');
-            }
-        }, 1000);
-    });
+                    });
+                    // Date
+                    $('.current-date h1').html(day +', '+ month +' '+_date);
+                    console.log('new date');
+                } else {
+                    console.log('same date');
+                }
+            }, 1000);
+        });
   </script>
 </head>
 <body>
@@ -165,6 +177,11 @@
     </ul>
     <div class="callout panel text-center current-date" style="font-size:22px;">
         <ul style="text-align: left;">
+            <li>
+                <span style="font-weight: bold;">IDEA</span>,
+                <span style="font-weight: bold;">EXECUTION</span> and 
+                <span style="font-weight: bold;">CONSISTENCY</span>
+            </li>
             <li>Reactive tasks make you living, proactive tasks make you successful.</li>
             <li>For every liability that you have, you're somebody else's asset.</li>
             <li>A part of all I earn is mine to keep.</li>
@@ -174,7 +191,7 @@
         </ul>
     </div>
     <div class="callout panel text-center current-date"><h1></h1></div>
-    <table border="1" role="grid">
+    <table id="tbl-tasks" border="1" role="grid" style="margin: 0 auto;width:50%; margin-bottom: 50px;">
         <thead>
             <tr>
                 <th>Task</th>
